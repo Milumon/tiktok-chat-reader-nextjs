@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# TikTok-Chat-Reader (Next.js Version)
 
-## Getting Started
+A Next.js-based chat reader for [TikTok LIVE](https://www.tiktok.com/live), utilizing [TikTok-Live-Connector](https://github.com/zerodytrash/TikTok-Live-Connector) and [Socket.IO](https://socket.io/) to forward data to the client. This project is a migration of the original [TikTok-Chat-Reader](https://github.com/zerodytrash/TikTok-Chat-Reader) to Next.js, leveraging the unofficial TikTok API to retrieve chat comments, gifts, and other events from TikTok LIVE and display them in a modern, responsive UI.
 
-First, run the development server:
+## Features
+- Real-time chat messages and gift tracking from TikTok LIVE
+- Responsive UI with Next.js and Tailwind CSS
+- Automatic reconnection and error handling for a seamless chat experience
 
-```bash
+## Demo
+
+
+## Installation
+
+To run the chat reader locally, follow these steps:
+
+1. **Install [Node.js](https://nodejs.org/)** on your system if you haven't already.
+2. **Clone this repository** 
+3. Open a terminal in the project root directory.
+4. Install the dependencies by running:
+```
+npm install
+```
+5. Start the development server:
+```
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+6. Visit `http://localhost:8081` in your browser to view the app.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Running the Production Build
 
-## Learn More
+-----
 
-To learn more about Next.js, take a look at the following resources:
+To run the app in production mode, follow these steps:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Build the Next.js application:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+npm run build
+```
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2. Start the server:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+npm start
+```
+
+
+The app will now be available at `http://localhost:8081`.
+
+## Environment Variables
+
+This project requires environment variables for configuration. Create a `.env` file in the root of the project and add any necessary variables. For example:
+
+PORT=8081

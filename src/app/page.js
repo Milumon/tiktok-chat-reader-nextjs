@@ -1,101 +1,106 @@
-import Image from "next/image";
+// src/app/page.js
+'use client';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import useTikTokConnection from '../hooks/useTikTokConnection';
+import ChatContainer from '../components/ChatContainer';
+import GiftContainer from '../components/GiftContainer';
+import StatsDisplay from '../components/StatsDisplay';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    const router = useRouter();
+    const [hasMounted, setHasMounted] = useState(false);
+    const [username, setUsername] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
+    const { socket, connectToTikTok, isConnected } = useTikTokConnection("http://localhost:8081", username);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    // Ensure the component only renders after mounting on the client
+    useEffect(() => {
+        setHasMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (!username || !isConnected) return;
+
+        const handleConnect = async () => {
+            try {
+                await connectToTikTok(username, { enableExtendedGiftInfo: true });
+                setErrorMessage(''); // Clear error message on successful connection
+                console.info('Successfully connected to TikTok');
+            } catch (error) {
+                console.error('Connection failed:', error);
+                setErrorMessage("Connection failed: Invalid username or user not found.");
+            }
+        };
+
+        handleConnect();
+    }, [username, isConnected, connectToTikTok]);
+
+    // Clear error message if `isConnected` changes to true
+    useEffect(() => {
+        if (isConnected) {
+            setErrorMessage('');
+        }
+    }, [isConnected]);
+
+    // Prevent rendering on the server by returning null during SSR
+    if (!hasMounted) return null;
+
+    // Handle OBS Overlay navigation
+    const handleNavigateToOBS = () => {
+        if (username) {
+            router.push(`/obs?username=${username}`);
+        } else {
+            setErrorMessage('Please enter a username before proceeding to OBS overlay.');
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-900 text-gray-200 flex flex-col items-center p-6 space-y-6">
+            <h1 className="text-2xl font-bold">TikTok LIVE Chat Reader</h1>
+            <div className="flex space-x-2">
+                <input
+                    type="text"
+                    placeholder="@username"
+                    value={username}
+                    onChange={(e) => {
+                        setUsername(e.target.value);
+                        setErrorMessage('');  // Clear any error when updating username
+                    }}
+                    className="p-2 rounded bg-gray-800 text-gray-300 focus:outline-none"
+                />
+                <button
+                    onClick={() => setUsername(username)}
+                    disabled={isConnected}
+                    className={`px-4 py-2 rounded bg-blue-600 text-white ${
+                        isConnected ? 'bg-gray-500 cursor-not-allowed' : 'hover:bg-blue-500'
+                    }`}
+                >
+                    {isConnected ? 'Connected' : 'Connect'}
+                </button>
+            </div>
+
+            {!isConnected && errorMessage && (
+                <p className="text-red-500 mt-4">{errorMessage}</p>
+            )}
+
+            {isConnected && (
+                <>
+                    <StatsDisplay socket={socket} />
+                    <div className="flex flex-col sm:flex-row md:space-x-4 space-y-4 md:space-y-0 w-full max-w-4xl">
+                        <ChatContainer socket={socket} username={username} />
+                        <GiftContainer socket={socket} username={username} />
+                    </div>
+
+                    {/* OBS Overlay Button */}
+                    <button
+                        onClick={handleNavigateToOBS}
+                        className="mt-6 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500"
+                    >
+                        OBS Overlay
+                    </button>
+                </>
+            )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+    );
 }
